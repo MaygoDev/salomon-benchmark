@@ -27,7 +27,7 @@ func (c *Cell) Child() *Cell {
 	for i := range newGenome {
 		newGenome[i] = c.genome[i]
 	}
-	// mutation sur 1 gène (comme ton code Python)
+	// mutation sur 1 gène
 	newGenome[randomIndex] = rand.Float64()
 
 	return &Cell{
