@@ -8,11 +8,11 @@ import (
 func main() {
 	start := time.Now()
 	game := Game{
-		dimensions: 10,
+		dimensions: 5,
 	}
-	game.Populate(200)
-	for i := 0; i < 20000; i++ {
-		game.Generate(35)
+	game.Populate(1000)
+	for {
+		game.Generate(20)
 	}
 	elapsed := time.Since(start)
 	fmt.Printf("It took %5fseconds\n", elapsed.Seconds())
