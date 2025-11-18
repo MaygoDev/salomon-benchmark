@@ -1,54 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
-	"time"
+	"sync"
 )
 
 type Game struct {
 	dimensions int
 	cells      []Cell
-	generation int
-
-	lastPrint           time.Time
-	lastGenerationCount int
 }
 
 func (g *Game) Populate(count int) {
 	for i := 0; i < count; i++ {
 		genome := make([]float64, g.dimensions)
-
 		for j := 0; j < g.dimensions; j++ {
 			genome[j] = rand.Float64()
 		}
-
-		g.cells = append(g.cells, Cell{
-			genome: genome,
-		})
+		g.cells = append(g.cells, Cell{genome: genome})
 	}
-	g.lastPrint = time.Now()
 }
 
-func (g *Game) Generate(percent int8) {
-	g.generation++
+func (g *Game) Generate(percent int, generations *int, mutex *sync.Mutex) {
+	mutex.Lock()
+	*generations++
+	mutex.Unlock()
+
 	for i := range g.cells {
 		g.cells[i].Apply()
 	}
 
-	// Sort by lowest score
+	// tri selon le score
 	sort.Sort(ByScore(g.cells))
 
-	survivors := g.cells[:len(g.cells)*int(percent)/100]
-
-	if time.Since(g.lastPrint) > time.Second {
-		g.lastPrint = time.Now()
-
-		generationsPerSecond := g.generation - g.lastGenerationCount
-		fmt.Printf("Generation/s: %d | Best score: %\f | Genome: %v\n", generationsPerSecond, survivors[0].GetScore(), survivors[0].genome)
-		g.lastGenerationCount = g.generation
-	}
+	survivors := g.cells[:len(g.cells)*percent/100]
 
 	for len(survivors) < len(g.cells) {
 		parent := survivors[rand.Intn(len(survivors))]

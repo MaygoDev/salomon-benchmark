@@ -2,18 +2,37 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
 func main() {
-	start := time.Now()
 	game := Game{
-		dimensions: 5,
+		dimensions: 1,
 	}
-	game.Populate(1000)
+	game.Populate(200)
+
+	var (
+		generations         int
+		mutex               sync.Mutex
+		lastPrint           = time.Now()
+		lastGenerationCount = 0
+	)
+
 	for {
-		game.Generate(20)
+		go game.Generate(80, &generations, &mutex)
+
+		if time.Since(lastPrint) > time.Second {
+			lastPrint = time.Now()
+
+			mutex.Lock()
+			generationsPerSecond := generations - lastGenerationCount
+			mutex.Unlock()
+
+			fmt.Printf("Generation/s: %d\n", generationsPerSecond)
+			lastGenerationCount = generations
+		}
 	}
-	elapsed := time.Since(start)
-	fmt.Printf("It took %5fseconds\n", elapsed.Seconds())
+
+	fmt.Printf("Generations : %d", generations)
 }
